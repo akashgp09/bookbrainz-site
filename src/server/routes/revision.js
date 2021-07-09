@@ -142,6 +142,14 @@ function formatPublisherChange(change) {
 	return null;
 }
 
+function formatSeriesChange(change) {
+	if (_.isEqual(change.path, ['seriesOrderingType']) ||
+			_.isEqual(change.path, ['seriesOrderingType', 'label'])) {
+		return baseFormatter.formatTypeChange(change, 'Series Ordering Type');
+	}
+	return null;
+}
+
 function formatWorkChange(change) {
 	if (languageSetFormatter.changed(change)) {
 		return languageSetFormatter.format(change);
@@ -209,7 +217,7 @@ function diffRevisionsWithParents(orm, entityRevisions, entityType) {
 router.get('/:id', async (req, res, next) => {
 	const {
 		AuthorRevision, EditionRevision, EditionGroupRevision,
-		PublisherRevision, Revision, WorkRevision
+		SeriesRevision, PublisherRevision, Revision, WorkRevision
 	} = req.app.locals.orm;
 
 	let revision;
@@ -253,6 +261,7 @@ router.get('/:id', async (req, res, next) => {
 		const editionDiffs = await _createRevision(EditionRevision, 'Edition');
 		const editionGroupDiffs = await _createRevision(EditionGroupRevision, 'EditionGroup');
 		const publisherDiffs = await _createRevision(PublisherRevision, 'Publisher');
+		const seriesDiffs = await _createRevision(SeriesRevision, 'Series');
 		const workDiffs = await _createRevision(WorkRevision, 'Work');
 		const diffs = _.concat(
 			entityFormatter.formatEntityDiffs(
@@ -274,6 +283,11 @@ router.get('/:id', async (req, res, next) => {
 				publisherDiffs,
 				'Publisher',
 				formatPublisherChange
+			),
+			entityFormatter.formatEntityDiffs(
+				seriesDiffs,
+				'Series',
+				formatSeriesChange
 			),
 			entityFormatter.formatEntityDiffs(
 				workDiffs,
